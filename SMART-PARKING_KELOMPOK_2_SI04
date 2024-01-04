@@ -1,0 +1,101 @@
+import tkinter as tk
+from tkinter import ttk
+from datetime import datetime
+
+# Variabel global
+kendaraan = {}  # {plat nomor: {'tipe': 'motor', 'area': 'terbuka', 'waktu_masuk': datetime.now()}}
+total_pendapatan = 0
+
+# Tarif parkir (sesuaikan dengan kebutuhan)
+tarif = {
+    'motor': {'terbuka': 2000, 'tertutup': 3000, 'vip': 5000},
+    'mobil': {'terbuka': 5000, 'tertutup': 7000, 'vip': 10000},
+    'truk': {'terbuka': 10000, 'tertutup': 15000, 'vip': 20000},
+}
+
+# Metode pembayaran
+metode_pembayaran = {
+    'tunai': 1,
+    'elektronik': 2,
+}
+
+def parkir_masuk():
+    plat_nomor = entry_plat_nomor.get()
+    tipe_kendaraan = combo_tipe_kendaraan.get()
+    area_parkir = combo_area_parkir.get()
+
+    # Validasi input
+    if not plat_nomor or not tipe_kendaraan or not area_parkir:
+        label_status["text"] = "Harap isi semua data!"
+        return
+
+    # Tambah kendaraan ke data
+    kendaraan[plat_nomor] = {
+        'tipe': tipe_kendaraan,
+        'area': area_parkir,
+        'waktu_masuk': datetime.now(),
+    }
+
+    label_status["text"] = f"Parkir masuk: {plat_nomor}, Tipe: {tipe_kendaraan}, Area: {area_parkir}"
+
+def parkir_keluar():
+    plat_nomor = entry_plat_nomor.get()
+
+    # Validasi input
+    if not plat_nomor:
+        label_status["text"] = "Masukkan plat nomor untuk parkir keluar!"
+        return
+
+    # Periksa apakah kendaraan ada di data
+    if plat_nomor not in kendaraan:
+        label_status["text"] = f"Kendaraan dengan plat nomor {plat_nomor} tidak ditemukan!"
+        return
+
+    # Hitung tarif parkir
+    waktu_masuk = kendaraan[plat_nomor]['waktu_masuk']
+    waktu_keluar = datetime.now()
+    durasi_parkir = waktu_keluar - waktu_masuk
+    total_tarif = hitung_tarif(kendaraan[plat_nomor]['tipe'], kendaraan[plat_nomor]['area'], durasi_parkir)
+
+    label_status["text"] = f"Parkir keluar: {plat_nomor}, Total Tarif: {total_tarif}"
+
+    # Hapus kendaraan dari data
+    del kendaraan[plat_nomor]
+
+def hitung_tarif(tipe_kendaraan, area_parkir, durasi_parkir):
+    tarif_kendaraan = tarif.get(tipe_kendaraan, {})
+    tarif_area = tarif_kendaraan.get(area_parkir, 0)
+
+    # Hitung total tarif
+    total_tarif = tarif_area * durasi_parkir.total_seconds() / 3600
+
+    return total_tarif
+
+# Jendela utama
+root = tk.Tk()
+root.title("Sistem Parkir")
+
+# Label informasi
+label_judul = tk.Label(root, text="Sistem Parkir", font=("Helvetica", 16))
+label_status = tk.Label(root, text="")
+
+# Entry dan combo box untuk data kendaraan
+entry_plat_nomor = tk.Entry(root, width=20)
+combo_tipe_kendaraan = ttk.Combobox(root, values=["motor", "mobil", "truk"])
+combo_area_parkir = ttk.Combobox(root, values=["terbuka", "tertutup", "vip"])
+
+# Tombol
+button_masuk = tk.Button(root, text="Parkir Masuk", command=parkir_masuk)
+button_keluar = tk.Button(root, text="Parkir Keluar", command=parkir_keluar)
+
+# Tata letak widget
+label_judul.pack(pady=10)
+entry_plat_nomor.pack(pady=5)
+combo_tipe_kendaraan.pack(pady=5)
+combo_area_parkir.pack(pady=5)
+button_masuk.pack(pady=5)
+button_keluar.pack(pady=5)
+label_status.pack(pady=10)
+
+# Jalankan GUI
+root.mainloop()
